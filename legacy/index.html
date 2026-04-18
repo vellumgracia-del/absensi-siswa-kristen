@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SARKRIS - SMAN 1 Kandangan</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2907/2907253.png">
+
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .font-serif { font-family: 'Merriweather', serif; }
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .nav-item.active { background-color: #eff6ff; color: #1e40af; border-right: 3px solid #1e40af; font-weight: 600; }
+        
+        /* Grid Kalender */
+        .calendar-grid { 
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            gap: 8px; 
+            margin-top: 10px;
+        }
+        .cal-bubble {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased h-screen overflow-hidden bg-slate-50">
+
+    <div id="app" class="relative w-full h-full">
+
+        <!-- Banner PWA -->
+        <div id="pwa-install-banner" class="hidden fixed bottom-0 left-0 right-0 z-50 p-4 bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] rounded-t-3xl slide-up border-t border-blue-100 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-100 p-3 rounded-2xl text-blue-700"><i class="fas fa-download text-xl"></i></div>
+                <div><h3 class="font-bold text-slate-800">Install Aplikasi</h3><p class="text-xs text-slate-500">Pasang di layar utama HP.</p></div>
+            </div>
+            <div class="flex gap-3 w-full md:w-auto">
+                <button onclick="dismissInstall()" class="flex-1 md:flex-none py-2 px-4 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-100">Nanti</button>
+                <button id="btn-install" class="flex-1 md:flex-none py-2 px-6 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200">Install</button>
+            </div>
+        </div>
+
+        <!-- 1. HALAMAN LOGIN -->
+        <section id="page-login" class="h-full w-full flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1504052434569-70ad5836ab65?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center overflow-y-auto">
+            <div class="absolute inset-0 bg-blue-900/80 backdrop-blur-sm"></div>
+            <div class="relative z-10 bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row fade-in min-h-[600px]">
+                <div class="md:w-5/12 bg-gradient-to-br from-blue-800 to-indigo-900 p-10 flex flex-col justify-between text-white relative">
+                    <div class="absolute top-0 right-0 p-12 opacity-10"><i class="fas fa-cross text-9xl"></i></div>
+                    <div class="relative z-10">
+                        <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 border border-white/20 shadow-lg">
+                            <i class="fas fa-bible text-3xl text-yellow-400"></i>
+                        </div>
+                        <p class="text-blue-200 font-serif italic mb-2 text-sm">"Takut akan Tuhan adalah permulaan pengetahuan"</p>
+                        <h1 class="text-2xl font-bold leading-tight mb-2">Siswa Kristen<br>SMAN 1 Kandangan</h1>
+                    </div>
+                    <div class="relative z-10 text-[10px] text-blue-300 mt-8">&copy; 2026 Amaranggana.CO</div>
+                </div>
+                <div class="md:w-7/12 p-8 md:p-12 bg-white flex flex-col justify-center relative">
+                    <div id="login-options" class="w-full max-w-md mx-auto space-y-6">
+                        <div class="text-center"><h2 class="text-2xl font-bold text-slate-800 mb-1 font-serif">Shalom!</h2><p class="text-sm text-slate-500">Sistem Absensi & Pembinaan Iman.</p></div>
+                        <button onclick="showLoginForm('student')" class="group w-full flex items-center p-4 border border-slate-200 rounded-2xl hover:border-blue-600 hover:bg-blue-50 transition-all text-left shadow-sm">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center text-xl mr-4 group-hover:scale-110 transition-transform"><i class="fas fa-hands-praying"></i></div>
+                            <div><h3 class="font-bold text-slate-800 group-hover:text-blue-700">Siswa</h3><p class="text-xs text-slate-500">Absensi & Renungan</p></div>
+                        </button>
+                        <button onclick="showLoginForm('admin')" class="group w-full flex items-center p-4 border border-slate-200 rounded-2xl hover:border-indigo-600 hover:bg-indigo-50 transition-all text-left shadow-sm">
+                            <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center text-xl mr-4 group-hover:scale-110 transition-transform"><i class="fas fa-church"></i></div>
+                            <div><h3 class="font-bold text-slate-800 group-hover:text-indigo-700">Guru Agama</h3><p class="text-xs text-slate-500">Admin Dashboard</p></div>
+                        </button>
+                    </div>
+
+                    <div id="login-form-wrapper" class="hidden absolute inset-0 bg-white p-8 md:p-12 flex flex-col justify-center fade-in z-20">
+                        <button onclick="resetLogin()" class="absolute top-6 left-6 text-slate-400 hover:text-slate-700 flex items-center gap-2 text-sm font-medium"><i class="fas fa-arrow-left"></i> Kembali</button>
+                        <div class="w-full max-w-sm mx-auto">
+                            <h2 id="form-title" class="text-xl font-bold text-slate-800 mb-6 text-center">Login</h2>
+                            <form onsubmit="handleLoginProcess(event)" class="space-y-4">
+                                <div id="input-nis-group" class="hidden">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">NIS Siswa</label>
+                                    <input type="text" id="login-nis" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Nomor Induk Siswa">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                                    <input type="password" id="login-pass" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
+                                </div>
+                                <button type="submit" id="btn-login-submit" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-xl shadow-lg transition-all mt-2">Masuk</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. HALAMAN SISWA -->
+        <section id="page-student" class="hidden h-full overflow-y-auto bg-slate-50 flex flex-col items-center p-4 md:p-6">
+            <div class="w-full max-w-2xl space-y-6 fade-in pb-20">
+                <!-- Header -->
+                <nav class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold"><i class="fas fa-user"></i></div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase">Siswa / <span id="student-class-display">...</span></p>
+                            <h2 class="text-sm font-bold text-slate-800" id="student-name-display">...</h2>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="text-red-500 hover:bg-red-50 p-2 rounded-lg text-xs font-semibold">Logout</button>
+                </nav>
+
+                <!-- Renungan Card -->
+                <div id="devotional-card" class="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-2 -mr-2 opacity-10"><i class="fas fa-bible text-8xl"></i></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 mb-3 opacity-90">
+                            <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider">Renungan</span>
+                            <span class="text-[10px]" id="devotional-date">...</span>
+                        </div>
+                        <h3 class="text-lg font-serif font-bold leading-relaxed mb-2" id="devotional-verse">Memuat...</h3>
+                        <p class="text-blue-100 text-xs leading-relaxed" id="devotional-content">Sedang mengambil data...</p>
+                    </div>
+                </div>
+
+                <!-- Form Absensi & Jurnal -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2"><i class="fas fa-clipboard-check text-blue-600"></i> Form Ibadah Harian</h3>
+                    
+                    <form onsubmit="submitAttendance(event)" class="space-y-6">
+                        <!-- 1. Status -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="cursor-pointer relative"><input type="radio" name="attStatus" value="Hadir" checked class="peer sr-only"><div class="py-2 px-2 rounded-lg border border-slate-200 text-center transition-all peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 hover:bg-slate-50"><span class="text-xs font-bold">Hadir</span></div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="attStatus" value="Sakit" class="peer sr-only"><div class="py-2 px-2 rounded-lg border border-slate-200 text-center transition-all peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-700 hover:bg-slate-50"><span class="text-xs font-bold">Sakit</span></div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="attStatus" value="Izin" class="peer sr-only"><div class="py-2 px-2 rounded-lg border border-slate-200 text-center transition-all peer-checked:bg-yellow-50 peer-checked:border-yellow-500 peer-checked:text-yellow-700 hover:bg-slate-50"><span class="text-xs font-bold">Izin</span></div></label>
+                        </div>
+
+                        <!-- 2. Kalender Checklist (SUDAH DIPERBAIKI) -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
+                                <h3 class="text-[10px] font-bold text-slate-500 uppercase">Jejak Kehadiran (Bulan Ini)</h3>
+                                <div class="text-[9px] text-slate-400 flex items-center gap-1">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span> Hadir
+                                </div>
+                            </div>
+                            <div id="calendar-container" class="calendar-grid">
+                                <!-- JS akan mengisi ini -->
+                                <p class="text-[10px] text-center w-full col-span-7 py-2">Memuat Kalender...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 3. Agenda Harian Siswa -->
+                        <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                            <label class="block text-xs font-bold text-blue-600 uppercase mb-2 flex items-center gap-2">
+                                <i class="fas fa-pen"></i> Agenda / Kegiatan Harianmu
+                            </label>
+                            <textarea id="dailyLog" rows="2" placeholder="Ceritakan kegiatan positifmu hari ini..." class="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs resize-none"></textarea>
+                        </div>
+
+                        <!-- 4. Renungan & Doa -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Isi Renungan & Pokok Doa</label>
+                            <textarea id="prayerRequest" rows="2" placeholder="Tuliskan renungan atau doamu..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs resize-none"></textarea>
+                        </div>
+
+                        <button id="btn-submit-attend" type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-lg transition-all text-sm">Kirim Absen</button>
+                    </form>
+                </div>
+                
+                <!-- Jadwal Agenda Sekolah -->
+                <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-3 px-2">Jadwal Agenda Sekolah</h3>
+                    <ul id="student-agenda-list" class="space-y-2"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. HALAMAN ADMIN -->
+        <section id="page-admin" class="hidden h-screen flex bg-slate-50 overflow-hidden">
+            <aside class="w-64 bg-white border-r border-slate-200 z-30 flex flex-col h-full shadow-sm hidden md:flex">
+                <div class="h-20 flex items-center gap-3 px-6 border-b border-slate-100 bg-blue-900 text-white">
+                    <div class="w-8 h-8 bg-white/20 rounded flex items-center justify-center"><i class="fas fa-cross text-xs"></i></div>
+                    <div><span class="font-bold text-sm block">Guru Agama</span><span class="text-[10px] text-blue-200">Admin Mode</span></div>
+                </div>
+                <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                    <button onclick="switchTab('tab-dashboard')" id="nav-dashboard" class="nav-item w-full text-left px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 flex items-center gap-3 active"><i class="fas fa-chart-pie w-5 text-center"></i> <span class="text-sm font-medium">Dashboard</span></button>
+                    <button onclick="switchTab('tab-devotional')" id="nav-devotional" class="nav-item w-full text-left px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 flex items-center gap-3"><i class="fas fa-bible w-5 text-center"></i> <span class="text-sm font-medium">Renungan</span></button>
+                    <button onclick="switchTab('tab-attendance')" id="nav-attendance" class="nav-item w-full text-left px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 flex items-center gap-3"><i class="fas fa-list w-5 text-center"></i> <span class="text-sm font-medium">Absensi</span></button>
+                    <button onclick="switchTab('tab-students')" id="nav-students" class="nav-item w-full text-left px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 flex items-center gap-3"><i class="fas fa-users w-5 text-center"></i> <span class="text-sm font-medium">Data Siswa</span></button>
+                    <button onclick="switchTab('tab-agenda')" id="nav-agenda" class="nav-item w-full text-left px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 flex items-center gap-3"><i class="fas fa-calendar-alt w-5 text-center"></i> <span class="text-sm font-medium">Agenda</span></button>
+                </div>
+                <div class="p-4 border-t"><button onclick="logout()" class="w-full text-red-600 text-xs font-bold hover:bg-red-50 p-2 rounded">Keluar</button></div>
+            </aside>
+            
+            <main class="flex-1 flex flex-col h-full overflow-hidden">
+                <div class="md:hidden bg-white p-4 flex justify-between items-center shadow-sm z-20">
+                    <span class="font-bold text-blue-900">Admin Panel</span>
+                    <button onclick="logout()" class="text-red-500 text-xs">Keluar</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll">
+                    
+                    <!-- Dashboard -->
+                    <div id="tab-dashboard" class="fade-in space-y-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Siswa</p><h3 class="text-2xl font-bold text-slate-800" id="dash-total-students">...</h3></div>
+                            <div class="bg-white p-4 rounded-xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Hadir</p><h3 class="text-2xl font-bold text-green-600" id="dash-present">...</h3></div>
+                            <div class="bg-white p-4 rounded-xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Doa</p><h3 class="text-2xl font-bold text-purple-600" id="dash-prayers">...</h3></div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border p-4">
+                             <h3 class="font-bold text-purple-800 mb-3 text-sm flex items-center gap-2"><i class="fas fa-praying-hands"></i> Pokok Doa (Realtime)</h3>
+                             <ul id="dash-prayer-list" class="divide-y text-sm"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Renungan -->
+                    <div id="tab-devotional" class="hidden fade-in space-y-4 max-w-2xl">
+                        <h2 class="font-bold text-lg">Kelola Renungan</h2>
+                        <div class="bg-white p-6 rounded-xl border shadow-sm">
+                            <form onsubmit="saveDevotional(event)" class="space-y-4">
+                                <input type="text" id="dev-verse" class="w-full border p-3 rounded-lg text-sm focus:ring-2 ring-blue-500 outline-none" placeholder="Ayat Emas (e.g. Mazmur 23:1)">
+                                <textarea id="dev-content" rows="4" class="w-full border p-3 rounded-lg text-sm focus:ring-2 ring-blue-500 outline-none" placeholder="Isi renungan..."></textarea>
+                                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-blue-700">Terbitkan</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Absensi Table -->
+                    <div id="tab-attendance" class="hidden fade-in space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h2 class="font-bold text-lg">Data Absensi & Jurnal</h2>
+                            <button onclick="exportCSV()" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-700 flex items-center gap-2"><i class="fas fa-file-excel"></i> Export CSV</button>
+                        </div>
+                        <div class="bg-white rounded-xl border overflow-x-auto shadow-sm">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-50 font-bold text-xs uppercase text-slate-500">
+                                    <tr>
+                                        <th class="p-3">Waktu</th>
+                                        <th class="p-3">Nama</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3">Renungan & Doa</th>
+                                        <th class="p-3">Agenda Siswa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-attendance-admin" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Students Management -->
+                    <div id="tab-students" class="hidden fade-in space-y-4">
+                        <h2 class="font-bold text-lg">Data Siswa</h2>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="bg-white p-4 rounded-xl border space-y-3 h-fit shadow-sm">
+                                 <h3 class="text-xs font-bold text-slate-400 uppercase" id="form-student-title">Tambah Siswa</h3>
+                                 <input type="hidden" id="edit-id">
+                                 <input id="new-nis" placeholder="NIS" class="border p-2 rounded text-sm w-full">
+                                 <input id="new-name" placeholder="Nama Lengkap" class="border p-2 rounded text-sm w-full">
+                                 <input id="new-class" placeholder="Kelas (e.g. XI IPA 1)" class="border p-2 rounded text-sm w-full">
+                                 <input id="new-pass" placeholder="Password" class="border p-2 rounded text-sm w-full">
+                                 
+                                 <div class="flex gap-2">
+                                     <button id="btn-cancel-edit" onclick="cancelEditStudent()" class="hidden flex-1 bg-gray-200 text-gray-700 p-2 rounded text-sm font-bold">Batal</button>
+                                     <button id="btn-save-student" onclick="saveStudentFirebase()" class="flex-1 bg-blue-600 text-white p-2 rounded text-sm font-bold">Simpan</button>
+                                 </div>
+                            </div>
+                            <div class="md:col-span-2 bg-white rounded-xl border overflow-x-auto shadow-sm">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-slate-50 font-bold text-xs uppercase text-slate-500">
+                                        <tr>
+                                            <th class="p-3">NIS</th>
+                                            <th class="p-3">Nama</th>
+                                            <th class="p-3">Kelas</th>
+                                            <th class="p-3 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-students-body" class="divide-y"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agenda Management -->
+                    <div id="tab-agenda" class="hidden fade-in space-y-6">
+                        <div>
+                            <h2 class="font-bold text-lg mb-4">Agenda Aktif</h2>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="bg-white p-4 rounded-xl border space-y-3 h-fit shadow-sm">
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase">Tambah Agenda Baru</h3>
+                                    <input id="agenda-time" placeholder="Waktu (e.g. Jumat 12:00)" class="border p-2 rounded text-sm w-full">
+                                    <input id="agenda-title" placeholder="Kegiatan" class="border p-2 rounded text-sm w-full">
+                                    <button onclick="addAgenda()" class="bg-blue-600 text-white p-2 rounded w-full text-sm font-bold">Tambah</button>
+                                </div>
+                                <div class="md:col-span-2 bg-white rounded-xl border p-4 shadow-sm">
+                                    <ul id="table-agenda-active" class="space-y-2 text-sm"></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg mb-4 text-gray-500">Riwayat Selesai</h2>
+                            <div class="bg-gray-50 rounded-xl border p-4 shadow-sm">
+                                <ul id="table-agenda-history" class="space-y-2 text-sm"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- Mobile Nav -->
+                <div class="md:hidden bg-white border-t flex justify-around p-3 text-[10px] text-slate-500">
+                    <button onclick="switchTab('tab-dashboard')" class="flex flex-col items-center gap-1"><i class="fas fa-chart-pie text-lg"></i> Dash</button>
+                    <button onclick="switchTab('tab-attendance')" class="flex flex-col items-center gap-1"><i class="fas fa-list text-lg"></i> Absen</button>
+                    <button onclick="switchTab('tab-agenda')" class="flex flex-col items-center gap-1"><i class="fas fa-calendar text-lg"></i> Agenda</button>
+                    <button onclick="switchTab('tab-students')" class="flex flex-col items-center gap-1"><i class="fas fa-users text-lg"></i> Siswa</button>
+                </div>
+            </main>
+        </section>
+    </div>
+
+    <!-- FIREBASE & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, where, orderBy, doc, deleteDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // ===========================================
+        // KONFIGURASI FIREBASE
+        // ===========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMNL5ebbDTfEUUqskWwyHHB28D4ghZZhE",
+            authDomain: "sakris-web.firebaseapp.com",
+            projectId: "sakris-web",
+            storageBucket: "sakris-web.firebasestorage.app",
+            messagingSenderId: "344789248730",
+            appId: "1:344789248730:web:a07931e0847036d6c8d3e3"
+        };
+
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log("Firebase Connected");
+        } catch(e) {
+            console.error("Firebase Error:", e);
+            alert("Gagal koneksi Firebase. Cek console.");
+        }
+
+        const ADMIN_PASS = "admin123";
+        let currentUser = null;
+        let loginType = '';
+        let editingStudentId = null;
+
+        // PWA
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; setTimeout(() => installBanner.classList.remove('hidden'), 3000); });
+        window.dismissInstall = () => installBanner.classList.add('hidden');
+        if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+        document.getElementById('btn-install').addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') installBanner.classList.add('hidden'); deferredPrompt = null; }});
+
+        // GLOBAL FUNCTIONS
+        window.showLoginForm = (type) => {
+            document.getElementById('login-form-wrapper').classList.remove('hidden');
+            document.getElementById('input-nis-group').style.display = (type === 'student') ? 'block' : 'none';
+            document.getElementById('login-nis').required = (type === 'student');
+            loginType = type;
+        };
+        window.resetLogin = () => { document.getElementById('login-form-wrapper').classList.add('hidden'); document.querySelector('form').reset(); };
+        window.logout = () => window.location.reload();
+        window.switchTab = (id) => {
+            ['tab-dashboard','tab-devotional','tab-attendance','tab-students','tab-agenda'].forEach(t => document.getElementById(t).classList.add('hidden'));
+            ['nav-dashboard','nav-devotional','nav-attendance','nav-students','nav-agenda'].forEach(n => document.getElementById(n)?.classList.remove('active'));
+            document.getElementById(id).classList.remove('hidden');
+            if(document.getElementById(id.replace('tab','nav'))) document.getElementById(id.replace('tab','nav')).classList.add('active');
+        };
+
+        // LOGIN
+        window.handleLoginProcess = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login-submit');
+            btn.innerText = "Memuat..."; btn.disabled = true;
+            const pass = document.getElementById('login-pass').value;
+
+            if(loginType === 'admin') {
+                if(pass === ADMIN_PASS) {
+                    document.getElementById('page-login').classList.add('hidden');
+                    document.getElementById('page-admin').classList.remove('hidden');
+                    initAdminListeners();
+                } else alert("Password Admin Salah!");
+            } else {
+                const nis = document.getElementById('login-nis').value;
+                const q = query(collection(db, "smasa_students"), where("nis", "==", nis), where("pass", "==", pass));
+                const snap = await getDocs(q);
+                if(!snap.empty) {
+                    const d = snap.docs[0].data();
+                    currentUser = { id: snap.docs[0].id, ...d };
+                    document.getElementById('student-name-display').innerText = currentUser.name;
+                    document.getElementById('student-class-display').innerText = currentUser.kelas || "Kelas -";
+                    document.getElementById('page-login').classList.add('hidden');
+                    document.getElementById('page-student').classList.remove('hidden');
+                    initStudentListeners();
+                } else alert("NIS/Password Salah!");
+            }
+            btn.innerText = "Masuk"; btn.disabled = false;
+        };
+
+        // STUDENT
+        function initStudentListeners() {
+            // Render calendar immediately (empty)
+            renderCalendar([]);
+
+            onSnapshot(doc(db, "smasa_devotional", "daily"), (doc) => {
+                if(doc.exists()) {
+                    const d = doc.data();
+                    document.getElementById('devotional-date').innerText = d.date;
+                    document.getElementById('devotional-verse').innerText = `"${d.verse}"`;
+                    document.getElementById('devotional-content').innerText = d.content;
+                }
+            });
+            onSnapshot(query(collection(db, "smasa_agenda"), where("isFinished", "!=", true), orderBy("timestamp", "desc")), (snap) => {
+                const list = document.getElementById('student-agenda-list');
+                list.innerHTML = "";
+                snap.forEach(doc => {
+                    const a = doc.data();
+                    list.innerHTML += `<li class="flex gap-3 p-2 bg-slate-50 rounded"><span class="font-bold text-blue-600 text-xs whitespace-nowrap">${a.time}</span><span class="text-slate-700 text-xs">${a.title}</span></li>`;
+                });
+                if(snap.empty) list.innerHTML = '<li class="text-center text-slate-400 text-xs italic">Tidak ada agenda aktif.</li>';
+            });
+            onSnapshot(query(collection(db, "smasa_attendance"), where("nis", "==", currentUser.nis)), (snap) => {
+                const logs = [];
+                snap.forEach(d => logs.push(d.data()));
+                renderCalendar(logs);
+            });
+        }
+
+        // RENDER KALENDER
+        function renderCalendar(logs) {
+            const container = document.getElementById('calendar-container');
+            if(!container) return; // Guard clause
+            container.innerHTML = '';
+            
+            const date = new Date();
+            const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            const currentMonth = date.getMonth() + 1;
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayNum = i;
+                const isPresent = logs.some(l => {
+                    // Universal Date Match (Check for YYYY-MM-DD or D/M/YYYY in date string)
+                    if(!l.date) return false;
+                    // Ensure date comparison is robust
+                    const checkStr1 = `/${currentMonth}/`; // matches M/
+                    const checkStr2 = `-${String(currentMonth).padStart(2,'0')}-`; // matches -MM-
+                    
+                    // Basic check: Does the date string contain our day and month?
+                    // Note: This is simplified. For production, better use ISO string comparison.
+                    if (l.date.startsWith(`${dayNum}/`) || l.date.includes(`/${dayNum}/${date.getFullYear()}`)) return true;
+                    
+                    // Fallback to strict parsing
+                    const d = new Date(l.date.split('/').reverse().join('-')); // convert to YYYY-MM-DD
+                    if(isNaN(d.getTime())) {
+                       // Try standard iso
+                       const d2 = new Date(l.date);
+                       return d2.getDate() === dayNum && (d2.getMonth() + 1) === currentMonth;
+                    }
+                    return d.getDate() === dayNum && (d.getMonth() + 1) === currentMonth;
+                });
+
+                const bubble = document.createElement('div');
+                bubble.className = `cal-bubble ${isPresent ? 'bg-green-500 text-white shadow-md transform scale-110' : 'bg-slate-100 text-slate-400'}`;
+                bubble.innerHTML = isPresent ? '<i class="fas fa-check"></i>' : dayNum;
+                container.appendChild(bubble);
+            }
+        }
+
+        window.submitAttendance = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-attend');
+            // Standardize Date format to YYYY-MM-DD for easier parsing
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`; 
+            
+            const qCheck = query(collection(db, "smasa_attendance"), where("nis", "==", currentUser.nis), where("date", "==", todayStr));
+            const snapCheck = await getDocs(qCheck);
+            
+            if(!snapCheck.empty) return alert("Anda sudah absen hari ini!");
+
+            try {
+                btn.disabled = true; btn.innerText = "Mengirim...";
+                const status = document.querySelector('input[name="attStatus"]:checked').value;
+                const prayer = document.getElementById('prayerRequest').value;
+                const dailyLog = document.getElementById('dailyLog').value;
+                
+                await addDoc(collection(db, "smasa_attendance"), {
+                    nis: currentUser.nis,
+                    name: currentUser.name,
+                    status: status,
+                    prayer: prayer,
+                    dailyLog: dailyLog,
+                    timestamp: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
+                    date: todayStr, // Save as YYYY-MM-DD
+                    createdAt: new Date()
+                });
+                alert("Absen & Jurnal Terkirim!");
+                document.getElementById('prayerRequest').value = '';
+                document.getElementById('dailyLog').value = '';
+            } catch(err) { console.error(err); alert("Gagal kirim."); }
+            btn.disabled = false; btn.innerText = "Kirim Absen";
+        };
+
+        // ADMIN
+        function initAdminListeners() {
+            onSnapshot(query(collection(db, "smasa_attendance"), orderBy("createdAt", "desc")), (snap) => {
+                const tbody = document.getElementById('table-attendance-admin');
+                const pList = document.getElementById('dash-prayer-list');
+                let present = 0, prayers = [], rows = "";
+                
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if(d.status === 'Hadir') present++;
+                    if(d.prayer && d.prayer.length > 2) prayers.push({name: d.name, text: d.prayer});
+                    const b = d.status==='Hadir'?'bg-green-100 text-green-700':'bg-red-100 text-red-700';
+                    rows += `<tr class="border-b hover:bg-slate-50">
+                        <td class="p-3 text-slate-500 text-xs">${d.date}<br>${d.timestamp}</td>
+                        <td class="p-3 font-bold">${d.name}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${b}">${d.status}</span></td>
+                        <td class="p-3 text-xs italic text-slate-600 max-w-[150px] truncate">${d.prayer||'-'}</td>
+                        <td class="p-3 text-xs text-blue-600 max-w-[150px] truncate">${d.dailyLog||'-'}</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = rows;
+                document.getElementById('dash-present').innerText = present;
+                document.getElementById('dash-prayers').innerText = prayers.length;
+                pList.innerHTML = prayers.map(p => `<li class="p-3"><b class="text-slate-800">${p.name}:</b> <span class="text-slate-600 italic">"${p.text}"</span></li>`).join('') || '<li class="p-3 text-center text-slate-400">Nihil</li>';
+            });
+
+            onSnapshot(query(collection(db, "smasa_students"), orderBy("name")), (snap) => {
+                document.getElementById('dash-total-students').innerText = snap.size;
+                const tb = document.getElementById('table-students-body');
+                tb.innerHTML = "";
+                snap.forEach(doc => {
+                    const s = doc.data();
+                    const sStr = encodeURIComponent(JSON.stringify({id: doc.id, ...s}));
+                    tb.innerHTML += `<tr class="border-b hover:bg-slate-50">
+                        <td class="p-3 font-mono text-blue-600">${s.nis}</td>
+                        <td class="p-3">${s.name}</td>
+                        <td class="p-3 text-slate-500">${s.kelas || '-'}</td>
+                        <td class="p-3 text-right flex justify-end gap-2">
+                            <button onclick="editStudentFromTable('${sStr}')" class="text-blue-500 hover:bg-blue-50 p-1 rounded"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteDocFirebase('smasa_students', '${doc.id}')" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            });
+
+            onSnapshot(query(collection(db, "smasa_agenda"), orderBy("timestamp", "desc")), (snapshot) => {
+                const activeList = document.getElementById('table-agenda-active');
+                const historyList = document.getElementById('table-agenda-history');
+                activeList.innerHTML = ""; historyList.innerHTML = "";
+                
+                snapshot.forEach(doc => {
+                    const a = doc.data();
+                    if(!a.isFinished) {
+                        activeList.innerHTML += `<li class="flex justify-between items-center bg-slate-50 p-3 rounded border">
+                            <div><b class="text-blue-600 block text-xs mb-1">${a.time}</b><span class="text-slate-700 font-medium">${a.title}</span></div>
+                            <button onclick="finishAgenda('${doc.id}')" class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold hover:bg-green-200"><i class="fas fa-check"></i> Selesai</button>
+                        </li>`;
+                    } else {
+                        historyList.innerHTML += `<li class="flex justify-between items-center bg-gray-100 p-3 rounded border opacity-75">
+                            <div><b class="text-gray-500 block text-xs mb-1">${a.time}</b><span class="text-gray-600 font-medium line-through">${a.title}</span></div>
+                            <button onclick="deleteDocFirebase('smasa_agenda', '${doc.id}')" class="text-red-400 hover:text-red-600 text-xs font-bold"><i class="fas fa-trash"></i></button>
+                        </li>`;
+                    }
+                });
+                if(activeList.innerHTML === "") activeList.innerHTML = '<li class="text-center text-slate-400 italic text-sm">Tidak ada agenda aktif</li>';
+                if(historyList.innerHTML === "") historyList.innerHTML = '<li class="text-center text-slate-400 italic text-sm">Belum ada riwayat</li>';
+            });
+        }
+
+        // ACTIONS
+        window.saveStudentFirebase = async () => {
+            const n = document.getElementById('new-nis').value;
+            const nm = document.getElementById('new-name').value;
+            const cl = document.getElementById('new-class').value;
+            const p = document.getElementById('new-pass').value;
+            if(!n || !nm || !p) return alert("Lengkapi data!");
+            const data = { nis: n, name: nm, kelas: cl, pass: p };
+            if(editingStudentId) { await updateDoc(doc(db, "smasa_students", editingStudentId), data); alert("Diperbarui!"); cancelEditStudent(); } 
+            else { await addDoc(collection(db, "smasa_students"), data); alert("Ditambahkan"); cancelEditStudent(); }
+        };
+
+        window.editStudentFromTable = (studentStr) => {
+            const s = JSON.parse(decodeURIComponent(studentStr));
+            editingStudentId = s.id;
+            document.getElementById('new-nis').value = s.nis;
+            document.getElementById('new-name').value = s.name;
+            document.getElementById('new-class').value = s.kelas || "";
+            document.getElementById('new-pass').value = s.pass;
+            document.getElementById('form-student-title').innerText = "Edit Data Siswa";
+            document.getElementById('btn-save-student').innerText = "Update";
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+        };
+
+        window.cancelEditStudent = () => {
+            editingStudentId = null;
+            document.getElementById('new-nis').value = ''; document.getElementById('new-name').value = ''; document.getElementById('new-class').value = ''; document.getElementById('new-pass').value = '';
+            document.getElementById('form-student-title').innerText = "Tambah Siswa";
+            document.getElementById('btn-save-student').innerText = "Simpan";
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+        };
+
+        window.addAgenda = async () => {
+            const t = document.getElementById('agenda-time').value, ti = document.getElementById('agenda-title').value;
+            await addDoc(collection(db, "smasa_agenda"), { time: t, title: ti, timestamp: new Date(), isFinished: false });
+            document.getElementById('agenda-time').value=''; document.getElementById('agenda-title').value='';
+        };
+
+        window.finishAgenda = async (id) => { if(confirm("Tandai agenda sebagai selesai?")) await updateDoc(doc(db, "smasa_agenda", id), { isFinished: true }); };
+        window.saveDevotional = async (e) => { e.preventDefault(); await setDoc(doc(db, "smasa_devotional", "daily"), { date: new Date().toLocaleDateString('id-ID'), verse: document.getElementById('dev-verse').value, content: document.getElementById('dev-content').value }); alert("Renungan Terbit!"); };
+        window.deleteDocFirebase = async (col, id) => { if(confirm("Hapus data ini permanen?")) await deleteDoc(doc(db, col, id)); };
+
+        window.exportCSV = async () => {
+            const snap = await getDocs(collection(db, "smasa_attendance"));
+            let csv = "Tanggal,Waktu,NIS,Nama,Status,Renungan_Doa,Agenda_Siswa\n";
+            snap.forEach(d => { 
+                const l = d.data(); 
+                const safePrayer = (l.prayer || '').replace(/"/g, '""');
+                const safeLog = (l.dailyLog || '').replace(/"/g, '""');
+                csv += `"${l.date}","${l.timestamp}","${l.nis}","${l.name}","${l.status}","${safePrayer}","${safeLog}"\n`; 
+            });
+            const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv); link.download = "Absensi_SARKRIS_Full.csv"; link.click();
+        };
+    </script>
+</body>
+</html>
